@@ -1,0 +1,292 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список задач</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tag-home { background-color: #10b981; }
+        .tag-work { background-color: #ef4444; }
+        .tag-default { background-color: #3b82f6; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-6">Список задач</h1>
+        
+        <!-- Форма добавления задачи -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-xl font-semibold mb-4">Добавить новую задачу</h2>
+            <form id="add-form" class="space-y-4">
+                <div>
+                    <label for="add-title" class="block text-sm font-medium">Заголовок</label>
+                    <input type="text" id="add-title" name="title" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                </div>
+                <div>
+                    <label for="add-description" class="block text-sm font-medium">Описание</label>
+                    <input type="text" id="add-description" name="description" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                </div>
+                <div>
+                    <label for="add-tag" class="block text-sm font-medium">Тег</label>
+                    <select id="add-tag" name="tag" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                        <option value="0">Дом (Зелёный)</option>
+                        <option value="1">Работа (Красный)</option>
+                        <option value="2">По умолчанию (Синий)</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">Добавить задачу</button>
+            </form>
+        </div>
+
+        <!-- Форма обновления задачи -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-xl font-semibold mb-4">Обновить задачу</h2>
+            <form id="update-form" class="space-y-4">
+                <div>
+                    <label for="update-id" class="block text-sm font-medium">ID задачи</label>
+                    <input type="number" id="update-id" name="id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                </div>
+                <div>
+                    <label for="update-title" class="block text-sm font-medium">Заголовок</label>
+                    <input type="text" id="update-title" name="title" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                </div>
+                <div>
+                    <label for="update-description" class="block text-sm font-medium">Описание</label>
+                    <input type="text" id="update-description" name="description" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">Обновить задачу</button>
+            </form>
+        </div>
+
+        <!-- Форма поиска задач -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-xl font-semibold mb-4">Поиск задач</h2>
+            <form id="search-form" class="space-y-4">
+                <div>
+                    <label for="search-id" class="block text-sm font-medium">ID задачи (необязательно)</label>
+                    <input type="number" id="search-id" name="id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                </div>
+                <div>
+                    <label for="search-title" class="block text-sm font-medium">Заголовок (необязательно)</label>
+                    <input type="text" id="search-title" name="title" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                </div>
+                <div>
+                    <label for="search-description" class="block text-sm font-medium">Описание (необязательно)</label>
+                    <input type="text" id="search-description" name="description" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">Найти</button>
+            </form>
+        </div>
+
+        <!-- Форма фильтрации задач -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-xl font-semibold mb-4">Фильтр задач</h2>
+            <form id="filter-form" class="space-y-4">
+                <div>
+                    <label for="filter-title" class="block text-sm font-medium">Заголовок (частично)</label>
+                    <input type="text" id="filter-title" name="title" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                </div>
+                <div>
+                    <label for="filter-description" class="block text-sm font-medium">Описание (частично)</label>
+                    <input type="text" id="filter-description" name="description" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">Фильтровать</button>
+            </form>
+        </div>
+
+        <!-- Список задач -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Список задач</h2>
+            <div id="task-list" class="space-y-4">
+                {{range .Tasks}}
+                <div class="flex items-center justify-between p-4 border rounded-lg {{if eq .Tag.Title "Home"}}tag-home{{else if eq .Tag.Title "Work"}}tag-work{{else}}tag-default{{end}} text-white">
+                    <div>
+                        <p><strong>ID:</strong> {{.ID}}</p>
+                        <p><strong>Заголовок:</strong> {{.Title}}</p>
+                        <p><strong>Описание:</strong> {{.Description}}</p>
+                        <p><strong>Статус:</strong> {{if .Status}}Выполнено{{else}}В ожидании{{end}}</p>
+                        <p><strong>Тег:</strong> {{.Tag.Title}}</p>
+                    </div>
+                    <div class="space-x-2">
+                        <button onclick="getTask({{.ID}})" class="bg-gray-800 text-white py-1 px-3 rounded hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">Подробно</button>
+                        <button onclick="successTask({{.ID}})" class="bg-green-600 text-white py-1 px-3 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">Выполнить</button>
+                        <button onclick="deleteTask({{.ID}})" class="bg-red-600 text-white py-1 px-3 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">Удалить</button>
+                    </div>
+                </div>
+                {{end}}
+            </div>
+        </div>
+
+        <!-- Модальное окно для деталей задачи -->
+        <div id="task-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+            <div class="bg-white p-6 rounded-lg shadow-md max-w-lg w-full">
+                <h2 class="text-xl font-semibold mb-4">Детали задачи</h2>
+                <div id="task-details"></div>
+                <button onclick="closeModal()" class="mt-4 w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Функция для выполнения API-запросов
+        async function makeRequest(url, method = 'GET') {
+            const response = await fetch(url, { method });
+            if (!response.ok) {
+                const errorText = await response.text();
+                alert(`Ошибка: ${errorText}`);
+                return null;
+            }
+            return response.json();
+        }
+
+        // Добавление задачи
+        document.getElementById('add-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const url = `/add/?title=${encodeURIComponent(formData.get('title'))}&description=${encodeURIComponent(formData.get('description'))}&tag=${formData.get('tag')}`;
+            await makeRequest(url, 'POST');
+            window.location.reload();
+        });
+
+        // Обновление задачи
+        document.getElementById('update-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const url = `/update/?id=${formData.get('id')}&title=${encodeURIComponent(formData.get('title'))}&description=${encodeURIComponent(formData.get('description'))}`;
+            await makeRequest(url, 'POST');
+            window.location.reload();
+        });
+
+        // Поиск задач
+        document.getElementById('search-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const id = formData.get('id') || '0';
+            const url = `/search/?id=${id}&title=${encodeURIComponent(formData.get('title'))}&description=${encodeURIComponent(formData.get('description'))}`;
+            const tasks = await makeRequest(url);
+            if (tasks) {
+                if (tasks.length === 0) {
+                    document.getElementById('task-list').innerHTML = '<p class="text-center text-gray-500">Задачи не найдены</p>';
+                } else {
+                    displayTasks(tasks);
+                }
+            }
+        });
+
+        // Фильтрация задач
+        document.getElementById('filter-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const url = `/filter/?title=${encodeURIComponent(formData.get('title'))}&description=${encodeURIComponent(formData.get('description'))}`;
+            const tasks = await makeRequest(url);
+            if (tasks) {
+                if (tasks.length === 0) {
+                    document.getElementById('task-list').innerHTML = '<p class="text-center text-gray-500">Задачи не найдены</p>';
+                } else {
+                    displayTasks(tasks);
+                }
+            }
+        });
+
+        // Получение деталей задачи
+        async function getTask(id) {
+            const task = await makeRequest(`/get/?id=${id}`);
+            if (task) {
+                const modal = document.getElementById('task-modal');
+                const details = document.getElementById('task-details');
+                details.innerHTML = `
+                    <p><strong>ID:</strong> ${task.id}</p>
+                    <p><strong>Заголовок:</strong> ${task.title}</p>
+                    <p><strong>Описание:</strong> ${task.description}</p>
+                    <p><strong>Статус:</strong> ${task.status ? 'Выполнено' : 'В ожидании'}</p>
+                    <p><strong>Создано:</strong> ${new Date(task.timeCreate).toLocaleString()}</p>
+                    <p><strong>Обновлено:</strong> ${new Date(task.timeUpdate).toLocaleString()}</p>
+                    <p><strong>Тег:</strong> ${task.tag.Title} (${task.tag.Class})</p>
+                    <p><strong>Снимки:</strong> ${task.snapshot ? task.snapshot.map(s => s.title).join(', ') : 'Нет'}</p>
+                `;
+                modal.classList.remove('hidden');
+            }
+        }
+
+        // Выполнение задачи
+        async function successTask(id) {
+            await makeRequest(`/success/?id=${id}`, 'POST');
+            window.location.reload();
+        }
+
+        // Удаление задачи
+        async function deleteTask(id) {
+            if (confirm('Вы уверены, что хотите удалить эту задачу?')) {
+                await makeRequest(`/del/?id=${id}`, 'POST');
+                window.location.reload();
+            }
+        }
+
+        // Закрытие модального окна
+        function closeModal() {
+            document.getElementById('task-modal').classList.add('hidden');
+        }
+
+        // Отображение списка задач
+        function displayTasks(tasks) {
+            const taskList = document.getElementById('task-list');
+            taskList.innerHTML = tasks.map(task => `
+                <div class="flex items-center justify-between p-4 border rounded-lg tag-${task.tag.Title.toLowerCase()} text-white">
+                    <div>
+                        <p><strong>ID:</strong> ${task.id}</p>
+                        <p><strong>Заголовок:</strong> ${task.title}</p>
+                        <p><strong>Описание:</strong> ${task.description}</p>
+                        <p><strong>Статус:</strong> ${task.status ? 'Выполнено' : 'В ожидании'}</p>
+                        <p><strong>Тег:</strong> ${task.tag.Title}</p>
+                    </div>
+                    <div class="space-x-2">
+                        <button onclick="getTask(${task.id})" class="bg-gray-800 text-white py-1 px-3 rounded hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">Подробно</button>
+                        <button onclick="successTask(${task.id})" class="bg-green-600 text-white py-1 px-3 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">Выполнить</button>
+                        <button onclick="deleteTask(${task.id})" class="bg-red-600 text-white py-1 px-3 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">Удалить</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
