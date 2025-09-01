@@ -28,10 +28,7 @@ func (api *Api) CMD() (err error) {
 		}
 		api.todoArray.RenderTable()
 	} else if *search {
-		todoSearchArray, err := api.todoArray.Search(*ID, *title, *description)
-		if err != nil {
-			return err
-		}
+		todoSearchArray := api.todoArray.Search(*ID, *title, *description)
 		todoSearchArray.RenderTable()
 	} else if *del {
 		api.todoArray.Remove(*ID)
@@ -42,10 +39,7 @@ func (api *Api) CMD() (err error) {
 		}
 		api.todoArray.RenderTable()
 	} else if *filter {
-		todoFilterArray, err := api.todoArray.Filter(*title, *description)
-		if err != nil {
-			return err
-		}
+		todoFilterArray := api.todoArray.Filter(*title, *description)
 		todoFilterArray.RenderTable()
 	} else if *view {
 		err = api.todoArray.ReadFromFile()

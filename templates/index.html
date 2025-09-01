@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List</title>
+    <style>
+        /* Общие стили */
+        :root {
+            --green: #4CAF50;
+            --red: #f44336;
+            --blue: #2196F3;
+            --gray: #9e9e9e;
+            --light-gray: #f4f7f6;
+            --text: #333;
+            --bg: #ffffff;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 4px 15px rgba(0, 0, 0, 0.15);
+            --radius: 10px;
+            --transition: all 0.2s ease;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-gray);
+            margin: 0;
+            padding: 20px;
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--bg);
+            padding: 30px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--green);
+            margin-bottom: 10px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 0.95em;
+            margin-bottom: 30px;
+        }
+
+        /* Формы */
+        .form-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border-radius: var(--radius);
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+        }
+
+        .form-section h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.1em;
+            color: #444;
+            font-weight: 500;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .form-row input,
+        .form-row textarea,
+        .form-row select,
+        .form-row button {
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95em;
+            transition: var(--transition);
+        }
+
+        .form-row input:focus,
+        .form-row textarea:focus,
+        .form-row select:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+        }
+
+        .form-row input,
+        .form-row textarea,
+        .form-row select {
+            flex-grow: 1;
+            min-width: 180px;
+            background: white;
+        }
+
+        .form-row textarea {
+            height: 50px;
+            resize: vertical;
+        }
+
+        .form-row button {
+            background-color: var(--green);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            min-width: 90px;
+        }
+
+        .form-row button:hover {
+            background-color: #43a047;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .clear-btn {
+            background-color: var(--gray) !important;
+        }
+
+        .clear-btn:hover {
+            background-color: #757575 !important;
+        }
+
+        /* Список задач */
+        .task-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .task-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 18px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .task-item:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-2px);
+        }
+
+        .task-item.completed {
+            background: #f8fbfc;
+            border-color: #b3e5fc;
+            color: #777;
+        }
+
+        .task-item.completed .task-title,
+        .task-item.completed .task-desc {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        .task-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .task-title {
+            font-weight: 600;
+            font-size: 1.25em;
+            margin-bottom: 8px;
+            transition: var(--transition);
+        }
+
+        .title-green { color: var(--green); }
+        .title-red { color: var(--red); }
+        .title-blue { color: var(--blue); }
+
+        .task-desc {
+            color: #555;
+            margin: 5px 0;
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+
+        .task-meta {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 10px;
+        }
+
+        /* Режим редактирования */
+        .view-mode, .edit-mode {
+            margin-bottom: 12px;
+        }
+
+        .edit-mode {
+            display: none;
+        }
+
+        .edit-mode input,
+        .edit-mode textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .edit-mode textarea {
+            height: 80px;
+            resize: vertical;
+        }
+
+        /* Тег */
+        .tag-container {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .task-tag {
+            padding: 6px 12px;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.85em;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        .tag-green { background: var(--green); }
+        .tag-red { background: var(--red); }
+        .tag-blue { background: var(--blue); }
+
+        /* Действия */
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .actions button,
+        .actions a {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .update-btn-inline {
+            background: var(--blue);
+            color: white;
+        }
+
+        .get-btn {
+            background: #795548;
+            color: white;
+        }
+
+        .success-btn {
+            background: var(--green);
+            color: white;
+        }
+
+        .delete-btn {
+            background: var(--red);
+            color: white;
+        }
+
+        .actions button:hover,
+        .actions a:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* Панель JSON */
+        .info-panel {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.4;
+            overflow: auto;
+            max-height: 200px;
+        }
+
+        /* Нет задач */
+        .no-tasks {
+            text-align: center;
+            color: #888;
+            font-style: italic;
+            margin: 30px 0;
+            font-size: 1.1em;
+            padding: 20px;
+            background: #fafafa;
+            border-radius: var(--radius);
+        }
+
+        /* Информация о фильтре */
+        .view-controls {
+            text-align: center;
+            margin: 15px 0 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Todo List</h1>
+        <p class="subtitle">Stay organized, get things done</p>
+
+        <!-- Add Task -->
+        <div class="form-section">
+            <h3>Add Task</h3>
+            <form class="add-form" action="/add/" method="GET">
+                <div class="form-row">
+                    <input type="text" name="title" placeholder="Task Title" required>
+                    <textarea name="description" placeholder="Task Description" required></textarea>
+                    <select name="tag">
+                        <option value="0">Home (Green)</option>
+                        <option value="1">Work (Red)</option>
+                        <option value="2">Default (Blue)</option>
+                    </select>
+                    <button type="submit">Add</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Search -->
+        <div class="form-section">
+            <h3>Search Tasks</h3>
+            <form class="search-form" onsubmit="handleSearch(event)">
+                <div class="form-row">
+                    <input type="number" name="id" placeholder="Search by ID">
+                    <input type="text" name="title" placeholder="Search by Title">
+                    <input type="text" name="description" placeholder="Search by Description">
+                    <button type="submit">Search</button>
+                    <button type="button" class="clear-btn" onclick="clearFilter()">Clear</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Filter -->
+        <div class="form-section">
+            <h3>Filter Tasks</h3>
+            <form class="filter-form" onsubmit="handleFilter(event)">
+                <div class="form-row">
+                    <input type="text" name="title" placeholder="Filter by Title">
+                    <input type="text" name="description" placeholder="Filter by Description">
+                    <button type="submit">Filter</button>
+                    <button type="button" class="clear-btn" onclick="clearFilter()">Clear</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- View Info -->
+        <div class="view-controls" id="viewInfo">
+            All tasks
+        </div>
+
+        <!-- Task List -->
+        <ul class="task-list" id="taskList">
+            {{range .Tasks}}
+            <li class="task-item {{if .Status}}completed{{end}}" data-id="{{.ID}}">
+                <div class="task-details">
+                    <!-- View Mode -->
+                    <div class="view-mode">
+                        <span class="task-title 
+                            {{if .Tag}} 
+                                {{if eq .Tag.Class "Green"}}title-green
+                                {{else if eq .Tag.Class "Red"}}title-red
+                                {{else}}title-blue
+                                {{end}} 
+                            {{else}}title-blue
+                            {{end}}">
+                            {{.Title}}
+                        </span>
+                        <p class="task-desc">{{.Description}}</p>
+                        <p class="task-meta">
+                            Created: {{.TimeCreate.Format "2006-01-02 15:04"}} | 
+                            Updated: {{.TimeUpdate.Format "2006-01-02 15:04"}}
+                        </p>
+                        <button class="update-btn-inline">Edit</button>
+                    </div>
+
+                    <!-- Edit Mode -->
+                    <form class="edit-mode" method="GET" action="/update/">
+                        <input type="hidden" name="id" value="{{.ID}}">
+                        <input type="text" name="title" value="{{.Title}}" required>
+                        <textarea name="description" required>{{.Description}}</textarea>
+                        <button type="submit">Save</button>
+                        <button type="button" class="cancel-btn">Cancel</button>
+                    </form>
+                </div>
+
+                <!-- Tag -->
+                <div class="tag-container">
+                    <span class="task-tag 
+                        tag-{{if .Tag}} 
+                            {{if eq .Tag.Class "Green"}}green
+                            {{else if eq .Tag.Class "Red"}}red
+                            {{else}}blue
+                            {{end}} 
+                        {{else}}blue
+                        {{end}}">
+                        {{if .Tag}}{{.Tag.Title}}{{else}}Default{{end}}
+                    </span>
+                </div>
+
+                <!-- Actions -->
+                <div class="actions">
+                    <button type="button" class="get-btn" data-id="{{.ID}}">Get</button>
+                    {{if not .Status}}
+                    <a href="/success/?id={{.ID}}" class="success-btn">Complete</a>
+                    {{end}}
+                    <a href="/del/?id={{.ID}}" class="delete-btn">Delete</a>
+                </div>
+
+                <!-- JSON Panel -->
+                <div class="info-panel"></div>
+            </li>
+            {{else}}
+            <p class="no-tasks">No tasks yet. Add one above!</p>
+            {{end}}
+        </ul>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        const originalTaskList = document.getElementById('taskList').innerHTML;
+        const originalViewInfo = document.getElementById('viewInfo').textContent;
+
+        function handleSearch(e) {
+            e.preventDefault();
+            const form = e.target;
+            const params = new URLSearchParams();
+            const id = form['id'].value;
+            const title = form['title'].value;
+            const description = form['description'].value;
+
+            if (id) params.append('id', id);
+            if (title) params.append('title', title);
+            if (description) params.append('description', description);
+
+            fetch(`/search/?${params}`)
+                .then(r => r.json())
+                .then(tasks => updateTaskList(tasks, `Search: ${tasks.length} result(s)`))
+                .catch(() => {
+                    document.getElementById('taskList').innerHTML = '<p class="no-tasks">Search failed.</p>';
+                    document.getElementById('viewInfo').textContent = 'Error';
+                });
+        }
+
+        function handleFilter(e) {
+            e.preventDefault();
+            const form = e.target;
+            const params = new URLSearchParams();
+            const title = form['title'].value;
+            const description = form['description'].value;
+
+            if (title) params.append('title', title);
+            if (description) params.append('description', description);
+
+            fetch(`/filter/?${params}`)
+                .then(r => r.json())
+                .then(tasks => updateTaskList(tasks, `Filtered: ${tasks.length} task(s)`))
+                .catch(() => {
+                    document.getElementById('taskList').innerHTML = '<p class="no-tasks">Filter failed.</p>';
+                    document.getElementById('viewInfo').textContent = 'Error';
+                });
+        }
+
+        function updateTaskList(tasks, infoText) {
+            const container = document.getElementById('taskList');
+            if (!Array.isArray(tasks) || tasks.length === 0) {
+                container.innerHTML = '<p class="no-tasks">No tasks match the criteria.</p>';
+                document.getElementById('viewInfo').textContent = 'No results';
+                return;
+            }
+
+            container.innerHTML = tasks.map(task => `
+                <li class="task-item ${task.status ? 'completed' : ''}" data-id="${task.id}">
+                    <div class="task-details">
+                        <div class="view-mode">
+                            <span class="task-title ${getTitleColorClass(task.tag)}">
+                                ${escapeHtml(task.title)}
+                            </span>
+                            <p class="task-desc">${escapeHtml(task.description)}</p>
+                            <p class="task-meta">
+                                Created: ${formatTime(task.timeCreate)} | 
+                                Updated: ${formatTime(task.timeUpdate)}
+                            </p>
+                            <button class="update-btn-inline">Edit</button>
+                        </div>
+                        <form class="edit-mode" method="GET" action="/update/">
+                            <input type="hidden" name="id" value="${task.id}">
+                            <input type="text" name="title" value="${escapeHtml(task.title)}" required>
+                            <textarea name="description" required>${escapeHtml(task.description)}</textarea>
+                            <button type="submit">Save</button>
+                            <button type="button" class="cancel-btn">Cancel</button>
+                        </form>
+                    </div>
+                    <div class="tag-container">
+                        <span class="task-tag ${getTagColorClass(task.tag)}">
+                            ${task.tag ? escapeHtml(task.tag.title) : 'Default'}
+                        </span>
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="get-btn" data-id="${task.id}">Get</button>
+                        ${!task.status ? `<a href="/success/?id=${task.id}" class="success-btn">Complete</a>` : ''}
+                        <a href="/del/?id=${task.id}" class="delete-btn">Delete</a>
+                    </div>
+                    <div class="info-panel"></div>
+                </li>
+            `).join('');
+
+            document.getElementById('viewInfo').textContent = infoText;
+            attachEventListeners();
+        }
+
+        function clearFilter() {
+            document.getElementById('taskList').innerHTML = originalTaskList;
+            document.getElementById('viewInfo').textContent = originalViewInfo;
+            attachEventListeners();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatTime(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleString('sv-SE', { dateStyle: 'short', timeStyle: 'short' });
+        }
+
+        function getTagColorClass(tag) {
+            if (!tag) return 'tag-blue';
+            if (tag.class === 'Green') return 'tag-green';
+            if (tag.class === 'Red') return 'tag-red';
+            return 'tag-blue';
+        }
+
+        function getTitleColorClass(tag) {
+            if (!tag) return 'title-blue';
+            if (tag.class === 'Green') return 'title-green';
+            if (tag.class === 'Red') return 'title-red';
+            return 'title-blue';
+        }
+
+        function attachEventListeners() {
+            document.querySelectorAll('.get-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const id = this.getAttribute('data-id');
+                    const panel = this.closest('.task-item').querySelector('.info-panel');
+                    if (panel.style.display === 'block') {
+                        panel.style.display = 'none';
+                        panel.textContent = '';
+                        return;
+                    }
+                    panel.style.display = 'block';
+                    panel.textContent = 'Loading...';
+                    fetch(`/get/?id=${id}`)
+                        .then(r => r.ok ? r.json() : Promise.reject())
+                        .then(data => panel.textContent = JSON.stringify(data, null, 2))
+                        .catch(() => panel.textContent = 'Failed to load');
+                });
+            });
+
+            document.querySelectorAll('.update-btn-inline').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const view = this.closest('.view-mode');
+                    const edit = this.closest('.task-details').querySelector('.edit-mode');
+                    if (view && edit) {
+                        view.style.display = 'none';
+                        edit.style.display = 'block';
+                    }
+                });
+            });
+
+            document.querySelectorAll('.cancel-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const edit = this.closest('.edit-mode');
+                    const view = edit.closest('.task-details').querySelector('.view-mode');
+                    if (edit && view) {
+                        edit.style.display = 'none';
+                        view.style.display = 'block';
+                    }
+                });
+            });
+        }
+
+        attachEventListeners();
+    </script>
+</body>
+</html>

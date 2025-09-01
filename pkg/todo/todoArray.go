@@ -10,15 +10,13 @@ import (
 )
 
 func (todoArray *TodoArray) Insert(todoTitle, todoDescription string, tagID int) (todoPointer *TodoObject, err error) {
-	var (
-		tagPointer *TodoTagUnit
-	)
 
+	tagPointer := &TodoTagUnit{}
 	if todoTitle == "" || todoDescription == "" {
-		return nil, errors.New("all fields are not flush")
+		return nil, errors.New("all fields are not flush 'Insert 18'")
 	}
 
-	tagPointer, err = getTagUnit(tagID)
+	err = tagPointer.getTagUnit(tagID)
 	if err != nil {
 		return
 	}
@@ -31,7 +29,8 @@ func (todoArray *TodoArray) Insert(todoTitle, todoDescription string, tagID int)
 }
 
 func (todoArray *TodoArray) insertViaObject(todoObject TodoObject) (todoPointer *TodoObject, err error) {
-	todoObject.ID, err = getID()
+	var todoStorage TodoStorage
+	_, todoObject.ID, err = todoStorage.getStorage()
 	if err != nil {
 		return
 	}
@@ -39,18 +38,23 @@ func (todoArray *TodoArray) insertViaObject(todoObject TodoObject) (todoPointer 
 	todoObject.TimeCreate = time.Now()
 	todoObject.TimeUpdate = todoObject.TimeCreate
 	*todoArray = append(*todoArray, todoObject)
-	todoPointer = &todoObject
 
 	err = todoArray.addToFile()
 	if err != nil {
-		todoPointer = nil
 		return
 	}
+
+	err = todoStorage.writeStorage()
+	if err != nil {
+		return
+	}
+
+	todoPointer = &(*todoArray)[len(*todoArray)-1]
 
 	return
 }
 
-func (todoArray *TodoArray) Filter(todoTitle, todoDescription string) (todoFilterArray *TodoArray, err error) {
+func (todoArray *TodoArray) Filter(todoTitle, todoDescription string) (todoFilterArray *TodoArray) {
 	todoFilterArray = &TodoArray{}
 
 	for _, v := range *todoArray {
@@ -60,21 +64,21 @@ func (todoArray *TodoArray) Filter(todoTitle, todoDescription string) (todoFilte
 	}
 
 	if len(*todoFilterArray) == 0 {
-		return nil, errors.New("not found")
+		return nil
 	}
 
 	return
 }
 
-func (todoArray *TodoArray) getPointer(todoObject TodoObject) (todoPointer *TodoObject, err error) {
+func (todoArray *TodoArray) getPointerID(todoID int) (todoPointer *TodoObject, err error) {
 	count := 0
 
 	for _, v := range *todoArray {
-		if v.ID == todoObject.ID {
+		if v.ID == todoID {
 			count++
 			todoPointer = &v
 			if count > 1 {
-				return nil, errors.New("")
+				return nil, errors.New("to much Object 'getPointerID 81'")
 			}
 		}
 	}
@@ -83,10 +87,23 @@ func (todoArray *TodoArray) getPointer(todoObject TodoObject) (todoPointer *Todo
 		return
 	}
 
-	return nil, errors.New("not found")
+	return nil, errors.New("not found 'getPointerID 90'")
 }
 
 func (todoArray *TodoArray) UpdateRecord(ID int, todoTitle, todoDescription string) (todoPointer *TodoObject, err error) {
+	if todoTitle == "" && todoDescription == "" {
+		return nil, errors.New("fields are not flush 'UpdateRecord 95'")
+	}
+
+	todoPointer, err = todoArray.getPointerID(ID)
+	if err != nil {
+		return nil, err
+	}
+	if todoTitle == "" {
+		todoTitle = todoPointer.Title
+	} else if todoDescription == "" {
+		todoDescription = todoPointer.Description
+	}
 	return todoArray.updateRecordViaObject(TodoObject{
 		ID:          ID,
 		Title:       todoTitle,
@@ -95,20 +112,18 @@ func (todoArray *TodoArray) UpdateRecord(ID int, todoTitle, todoDescription stri
 }
 
 func (todoArray *TodoArray) updateRecordViaObject(todoObject TodoObject) (todoPointer *TodoObject, err error) {
-	todoPointer, err = todoArray.getPointer(todoObject)
+	todoPointer, err = todoArray.getPointerID(todoObject.ID)
 	if err != nil {
 		return
 	}
 
-	err = todoPointer.update(todoObject)
-	if err != nil {
-		return nil, err
-	}
+	todoPointer.update(todoObject)
 
 	err = todoArray.addToArray(todoPointer)
 	if err != nil {
 		return nil, err
 	}
+
 	err = todoArray.addToFile()
 	return
 }
@@ -118,14 +133,13 @@ func (todoArray *TodoArray) SuccecssRecord(ID int) (todoPointer *TodoObject, err
 }
 
 func (todoArray *TodoArray) succecssRecordViaObject(todoObject TodoObject) (todoPointer *TodoObject, err error) {
-	todoPointer, err = todoArray.getPointer(todoObject)
+	todoPointer, err = todoArray.getPointerID(todoObject.ID)
 	if err != nil {
 		return nil, err
 	}
-	err = todoPointer.succecss()
-	if err != nil {
-		return nil, err
-	}
+
+	todoPointer.succecss()
+
 	err = todoArray.addToArray(todoPointer)
 	if err != nil {
 		return nil, err
@@ -136,7 +150,8 @@ func (todoArray *TodoArray) succecssRecordViaObject(todoObject TodoObject) (todo
 }
 
 func (todoArray *TodoArray) Remove(ID int) (err error) {
-	todoPointer, err := todoArray.getPointer(TodoObject{ID: ID})
+	todoPointer := &TodoObject{}
+	todoPointer, err = todoArray.getPointerID(ID)
 	if err != nil {
 		return
 	}
@@ -151,10 +166,10 @@ func (todoArray *TodoArray) removeViaObject(todoObject TodoObject) (err error) {
 			return
 		}
 	}
-	return errors.New("not found")
+	return errors.New("not found 'removeViaObject 154'")
 }
 
-func (todoArray *TodoArray) Search(ID int, todoTitle, todoDescription string) (todoSearchArray *TodoArray, err error) {
+func (todoArray *TodoArray) Search(ID int, todoTitle, todoDescription string) (todoSearchArray *TodoArray) {
 	todoSearchArray = &TodoArray{}
 	tr := false
 	if ID != 0 {
@@ -180,13 +195,13 @@ func (todoArray *TodoArray) Search(ID int, todoTitle, todoDescription string) (t
 		}
 	}
 	if !tr {
-		return &TodoArray{}, errors.New("not found")
+		return &TodoArray{}
 	}
 	return
 }
 
 func (todoArray *TodoArray) Get(ID int) (todoPointer *TodoObject, err error) {
-	return todoArray.getPointer(TodoObject{ID: ID})
+	return todoArray.getPointerID(ID)
 }
 
 func (todoArray *TodoArray) RenderTable() {
@@ -196,4 +211,15 @@ func (todoArray *TodoArray) RenderTable() {
 		table.Append(v.ID, v.Description, v.TimeCreate, v.TimeUpdate, v.Status, v.Tag.Title)
 	}
 	table.Render()
+}
+
+func (todoArray *TodoArray) addToArray(todoPointer *TodoObject) (err error) {
+	for i, v := range *todoArray {
+		if v.ID == (*todoPointer).ID {
+			(*todoArray)[i] = *todoPointer
+			return
+		}
+	}
+
+	return errors.New("not found in 'addToArray 224'")
 }

@@ -22,11 +22,6 @@ type TodoTagUnit struct {
 type TodoArray []TodoObject
 
 type TodoStorage struct {
-	Filename string
-
-	*TodoArray
-}
-
-func (ts TodoStorage) Insert() {
-
+	Filename string `json:"filename"`
+	LastID   int    `json:"id"`
 }
