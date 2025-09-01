@@ -8,22 +8,20 @@ import (
 	"log"
 	"net/http"
 	"text/template"
-
-	"github.com/k0kubun/pp"
 )
 
 func (api *Api) New() (err error) {
-	api.todoArray = &todo.TodoArray{}
-	err = api.todoArray.ReadFromFile()
+	api.todoStorage = &todo.TodoStorage{}
+	err = api.todoStorage.Import()
 	if err != nil {
 		return
 	}
-	*api = NewApi(api.todoArray)
+	*api = NewApi(api.todoStorage)
 	return
 }
 
-func NewApi(todoArray *todo.TodoArray) Api {
-	return Api{todoArray: todoArray}
+func NewApi(todoStorage *todo.TodoStorage) Api {
+	return Api{todoStorage: todoStorage}
 }
 func (api *Api) Init() (err error) {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -34,9 +32,13 @@ func (api *Api) Init() (err error) {
 			return
 		}
 		data := struct {
-			Tasks *todo.TodoArray
+			Tasks      *todo.TodoArray
+			LastID     int
+			ComplTasks int
 		}{
-			Tasks: api.todoArray,
+			Tasks:      api.todoStorage.TodoArray,
+			LastID:     api.todoStorage.LastID,
+			ComplTasks: api.todoStorage.ComplTasks,
 		}
 		var buf bytes.Buffer
 		err = tmpl.Execute(&buf, data)
@@ -55,14 +57,14 @@ func (api *Api) Init() (err error) {
 		record := r.URL.Query()
 		var tagID int
 		fmt.Sscanf(record.Get("tag"), "%d", &tagID)
-		todoPointer, err := api.todoArray.Insert(record.Get("title"), record.Get("description"), tagID)
+		todoPointer, err := api.todoStorage.TodoArray.Insert(record.Get("title"), record.Get("description"), tagID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			log.Println(err)
 			return
 		}
 		log.Println("Task added")
-		pp.Print(todoPointer)
+		fmt.Printf("Task: %+v\n", todoPointer)
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
 
@@ -70,14 +72,14 @@ func (api *Api) Init() (err error) {
 		record := r.URL.Query()
 		var ID int
 		fmt.Sscanf(record.Get("id"), "%d", &ID)
-		todoPointer, err := api.todoArray.UpdateRecord(ID, record.Get("title"), record.Get("description"))
+		todoPointer, err := api.todoStorage.TodoArray.UpdateRecord(ID, record.Get("title"), record.Get("description"))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			log.Println(err)
 			return
 		}
 		log.Println("Task updated")
-		pp.Print(todoPointer)
+		fmt.Printf("Task: %+v\n", todoPointer)
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
 
@@ -85,14 +87,14 @@ func (api *Api) Init() (err error) {
 		record := r.URL.Query()
 		var ID int
 		fmt.Sscanf(record.Get("id"), "%d", &ID)
-		todoPointer, err := api.todoArray.SuccecssRecord(ID)
+		todoPointer, err := api.todoStorage.SuccecssRecord(ID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			log.Println(err)
 			return
 		}
 		log.Println("Task complited")
-		pp.Print(todoPointer)
+		fmt.Printf("Task: %+v\n", todoPointer)
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
 
@@ -100,7 +102,7 @@ func (api *Api) Init() (err error) {
 		record := r.URL.Query()
 		var ID int
 		fmt.Sscanf(record.Get("id"), "%d", &ID)
-		err := api.todoArray.Remove(ID)
+		err := api.todoStorage.TodoArray.Remove(ID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			log.Println(err)
@@ -114,7 +116,7 @@ func (api *Api) Init() (err error) {
 		record := r.URL.Query()
 		var ID int
 		fmt.Sscanf(record.Get("id"), "%d", &ID)
-		todoPointer, err := api.todoArray.Get(ID)
+		todoPointer, err := api.todoStorage.TodoArray.Get(ID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			log.Println(err)
@@ -122,21 +124,21 @@ func (api *Api) Init() (err error) {
 		}
 		json.NewEncoder(w).Encode(todoPointer)
 		log.Print("Task received ")
-		pp.Println(todoPointer)
+		fmt.Printf("Task: %+v\n", todoPointer)
 	})
 
 	http.HandleFunc("/search/", func(w http.ResponseWriter, r *http.Request) {
 		record := r.URL.Query()
 		var ID int
 		fmt.Sscanf(record.Get("id"), "%d", &ID)
-		todoSearchArray := api.todoArray.Search(ID, record.Get("title"), record.Get("description"))
+		todoSearchArray := api.todoStorage.TodoArray.Search(ID, record.Get("title"), record.Get("description"))
 		json.NewEncoder(w).Encode(todoSearchArray)
 		log.Printf("Search completed. Found %d tasks", len(*todoSearchArray))
 	})
 
 	http.HandleFunc("/filter/", func(w http.ResponseWriter, r *http.Request) {
 		record := r.URL.Query()
-		todoFilterArray := api.todoArray.Filter(record.Get("title"), record.Get("description"))
+		todoFilterArray := api.todoStorage.TodoArray.Filter(record.Get("title"), record.Get("description"))
 		json.NewEncoder(w).Encode(todoFilterArray)
 		log.Printf("Filtering completed. Found %d tasks.", len(*todoFilterArray))
 	})

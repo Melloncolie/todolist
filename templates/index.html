@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Todo List</title>
     <style>
-        /* Общие стили */
         :root {
             --green: #4CAF50;
             --red: #f44336;
@@ -43,7 +42,6 @@
             color: var(--green);
             margin-bottom: 10px;
             font-weight: 600;
-            letter-spacing: -0.5px;
         }
 
         .subtitle {
@@ -114,7 +112,6 @@
             border: none;
             cursor: pointer;
             font-weight: 500;
-            min-width: 90px;
         }
 
         .form-row button:hover {
@@ -231,7 +228,6 @@
             color: white;
             font-size: 0.85em;
             font-weight: 500;
-            letter-spacing: 0.3px;
         }
 
         .tag-green { background: var(--green); }
@@ -380,7 +376,6 @@
             {{range .Tasks}}
             <li class="task-item {{if .Status}}completed{{end}}" data-id="{{.ID}}">
                 <div class="task-details">
-                    <!-- View Mode -->
                     <div class="view-mode">
                         <span class="task-title 
                             {{if .Tag}} 
@@ -400,7 +395,6 @@
                         <button class="update-btn-inline">Edit</button>
                     </div>
 
-                    <!-- Edit Mode -->
                     <form class="edit-mode" method="GET" action="/update/">
                         <input type="hidden" name="id" value="{{.ID}}">
                         <input type="text" name="title" value="{{.Title}}" required>
@@ -410,7 +404,6 @@
                     </form>
                 </div>
 
-                <!-- Tag -->
                 <div class="tag-container">
                     <span class="task-tag 
                         tag-{{if .Tag}} 
@@ -424,7 +417,6 @@
                     </span>
                 </div>
 
-                <!-- Actions -->
                 <div class="actions">
                     <button type="button" class="get-btn" data-id="{{.ID}}">Get</button>
                     {{if not .Status}}
@@ -433,7 +425,6 @@
                     <a href="/del/?id={{.ID}}" class="delete-btn">Delete</a>
                 </div>
 
-                <!-- JSON Panel -->
                 <div class="info-panel"></div>
             </li>
             {{else}}

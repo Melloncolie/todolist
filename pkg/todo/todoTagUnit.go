@@ -14,7 +14,7 @@ func (tagPointer *TodoTagUnit) getTagUnit(tagID int) (err error) {
 		tagPointer.Title = "Default"
 		tagPointer.Class = "Blue"
 	default:
-		return errors.New("unknow TagID 'getTagUnit 17'")
+		return errors.New("Unknow TagID 'getTagUnit 17'")
 	}
 	return
 }

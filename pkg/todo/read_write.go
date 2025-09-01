@@ -2,7 +2,7 @@ package todo
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"os"
 )
 
@@ -10,19 +10,23 @@ func (todoArray *TodoArray) addToFile() (err error) {
 	var (
 		todoStorage TodoStorage
 		filename    string
+		array       Array
+		jsonData    []byte
 	)
-	filename, _, err = todoStorage.getStorage()
+
+	filename, _, _, err = todoStorage.getStorage()
 	if err != nil {
 		return
 	}
-	var jsonData []byte
-	jsonData, err = json.Marshal(todoArray)
+	array = todoArray.StringArray()
+	jsonData, err = json.Marshal(array)
 	if err != nil {
-		return errors.New("marshal " + filename + " error")
+		return fmt.Errorf("Marshal JSON %s has error: %v", filename, err)
 	}
-	err = os.WriteFile("file/TodoList.json", jsonData, 0644)
+
+	err = os.WriteFile(filename, jsonData, 0644)
 	if err != nil {
-		return errors.New("write " + filename + " error")
+		return fmt.Errorf("Write JSON %s has error: %v", filename, err)
 	}
 	return
 }
@@ -31,18 +35,31 @@ func (todoArray *TodoArray) ReadFromFile() (err error) {
 	var (
 		todoStorage TodoStorage
 		filename    string
+		array       Array
+		jsonData    []byte
+		parse       *TodoArray
 	)
-	filename, _, err = todoStorage.getStorage()
+
+	filename, _, _, err = todoStorage.getStorage()
 	if err != nil {
 		return
 	}
-	jsonData, err := os.ReadFile(filename)
+
+	jsonData, err = os.ReadFile(filename)
 	if err != nil {
-		return errors.New("read " + filename + " error 'ReadFromFile() 41'")
+		return fmt.Errorf("Read JSON %s has error: %v", filename, err)
 	}
-	err = json.Unmarshal(jsonData, &todoArray)
+
+	err = json.Unmarshal(jsonData, &array)
 	if err != nil {
-		return errors.New("unmarshal " + filename + " error 'ReadFromFile() 45'")
+		return fmt.Errorf("Unmarshal JSON %s has error: %v", filename, err)
 	}
+
+	parse, err = array.Todoarray()
+	if err != nil {
+		return
+	}
+	*todoArray = *parse
+
 	return
 }

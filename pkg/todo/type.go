@@ -9,7 +9,7 @@ type TodoObject struct {
 	TimeCreate  time.Time    `json:"timeCreate"`
 	TimeUpdate  time.Time    `json:"timeUpdate"`
 	Status      bool         `json:"status"`
-	Snapshot    TodoArray    `json:"snapshot"`
+	Snapshot    *TodoArray   `json:"snapshot"`
 	Tag         *TodoTagUnit `json:"tag"`
 }
 
@@ -22,6 +22,8 @@ type TodoTagUnit struct {
 type TodoArray []TodoObject
 
 type TodoStorage struct {
-	Filename string `json:"filename"`
-	LastID   int    `json:"id"`
+	Filename   string `json:"filename"`
+	LastID     int    `json:"id"`
+	ComplTasks int    `json:"complTasks"`
+	*TodoArray `json:"todoArray"`
 }

@@ -19,15 +19,5 @@ func main() {
 		log.Println(err)
 		return
 	}
-	err = api.Init()
-	if err != nil {
-		log.Println(err)
-		return
-	}
 
-	err = api.Run()
-	if err != nil {
-		log.Println(err)
-		return
-	}
 }

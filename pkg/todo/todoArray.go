@@ -13,7 +13,7 @@ func (todoArray *TodoArray) Insert(todoTitle, todoDescription string, tagID int)
 
 	tagPointer := &TodoTagUnit{}
 	if todoTitle == "" || todoDescription == "" {
-		return nil, errors.New("all fields are not flush 'Insert 18'")
+		return nil, errors.New("All fields are not flush")
 	}
 
 	err = tagPointer.getTagUnit(tagID)
@@ -30,7 +30,7 @@ func (todoArray *TodoArray) Insert(todoTitle, todoDescription string, tagID int)
 
 func (todoArray *TodoArray) insertViaObject(todoObject TodoObject) (todoPointer *TodoObject, err error) {
 	var todoStorage TodoStorage
-	_, todoObject.ID, err = todoStorage.getStorage()
+	_, todoObject.ID, _, err = todoStorage.getStorage()
 	if err != nil {
 		return
 	}
@@ -78,7 +78,7 @@ func (todoArray *TodoArray) getPointerID(todoID int) (todoPointer *TodoObject, e
 			count++
 			todoPointer = &v
 			if count > 1 {
-				return nil, errors.New("to much Object 'getPointerID 81'")
+				return nil, errors.New("To much Object")
 			}
 		}
 	}
@@ -87,12 +87,12 @@ func (todoArray *TodoArray) getPointerID(todoID int) (todoPointer *TodoObject, e
 		return
 	}
 
-	return nil, errors.New("not found 'getPointerID 90'")
+	return nil, errors.New("Pointer not found 'getPointerID 90'")
 }
 
 func (todoArray *TodoArray) UpdateRecord(ID int, todoTitle, todoDescription string) (todoPointer *TodoObject, err error) {
 	if todoTitle == "" && todoDescription == "" {
-		return nil, errors.New("fields are not flush 'UpdateRecord 95'")
+		return nil, errors.New("Fields are not flush")
 	}
 
 	todoPointer, err = todoArray.getPointerID(ID)
@@ -126,10 +126,6 @@ func (todoArray *TodoArray) updateRecordViaObject(todoObject TodoObject) (todoPo
 
 	err = todoArray.addToFile()
 	return
-}
-
-func (todoArray *TodoArray) SuccecssRecord(ID int) (todoPointer *TodoObject, err error) {
-	return todoArray.succecssRecordViaObject(TodoObject{ID: ID})
 }
 
 func (todoArray *TodoArray) succecssRecordViaObject(todoObject TodoObject) (todoPointer *TodoObject, err error) {
@@ -166,7 +162,7 @@ func (todoArray *TodoArray) removeViaObject(todoObject TodoObject) (err error) {
 			return
 		}
 	}
-	return errors.New("not found 'removeViaObject 154'")
+	return errors.New("Not found Object 'removeViaObject 154'")
 }
 
 func (todoArray *TodoArray) Search(ID int, todoTitle, todoDescription string) (todoSearchArray *TodoArray) {
@@ -208,7 +204,7 @@ func (todoArray *TodoArray) RenderTable() {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.Header("Title", "Description", "Create", "Update", "Status", "Tag")
 	for _, v := range *todoArray {
-		table.Append(v.ID, v.Description, v.TimeCreate, v.TimeUpdate, v.Status, v.Tag.Title)
+		table.Append(v.ID, v.Description, String(v.TimeCreate), String(v.TimeUpdate), v.Status, v.Tag.Title)
 	}
 	table.Render()
 }
@@ -221,5 +217,5 @@ func (todoArray *TodoArray) addToArray(todoPointer *TodoObject) (err error) {
 		}
 	}
 
-	return errors.New("not found in 'addToArray 224'")
+	return errors.New("Not found in 'addToArray 224'")
 }

@@ -7,7 +7,7 @@ func (todoPointer *TodoObject) update(todoObject TodoObject) {
 	todoObject.TimeCreate = todoPointer.TimeCreate
 	todoObject.Tag = todoPointer.Tag
 	todoPointer.Snapshot = nil
-	todoObject.Snapshot = append(todoObject.Snapshot, *todoPointer)
+	*todoObject.Snapshot = append(*todoObject.Snapshot, *todoPointer)
 	*todoPointer = todoObject
 	todoPointer.TimeUpdate = time.Now()
 }

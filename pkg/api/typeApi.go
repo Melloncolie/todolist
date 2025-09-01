@@ -9,5 +9,5 @@ type ApiInterface interface {
 }
 
 type Api struct {
-	todoArray *todo.TodoArray
+	todoStorage *todo.TodoStorage
 }
