@@ -8,13 +8,8 @@ import (
 func main() {
 
 	var api api.Api
-	err := api.New()
-	if err != nil {
-		log.Println(err)
-		return
-	}
 
-	err = api.CMD()
+	err := api.CMD()
 	if err != nil {
 		log.Println(err)
 		return

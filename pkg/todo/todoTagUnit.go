@@ -2,7 +2,7 @@ package todo
 
 import "errors"
 
-func (tagPointer *TodoTagUnit) getTagUnit(tagID int) (err error) {
+func (tagPointer *TodoTagUnit) setTagUnit(tagID int) (err error) {
 	switch tagID {
 	case 0:
 		tagPointer.Title = "Home"
@@ -16,5 +16,6 @@ func (tagPointer *TodoTagUnit) getTagUnit(tagID int) (err error) {
 	default:
 		return errors.New("Unknow TagID 'getTagUnit 17'")
 	}
+	tagPointer.ID = tagID
 	return
 }

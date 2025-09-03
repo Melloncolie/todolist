@@ -23,7 +23,7 @@ type TodoArray []TodoObject
 
 type TodoStorage struct {
 	Filename   string `json:"filename"`
-	LastID     int    `json:"id"`
+	NextID     int    `json:"id"`
 	ComplTasks int    `json:"complTasks"`
 	*TodoArray `json:"todoArray"`
 }
