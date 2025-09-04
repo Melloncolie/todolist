@@ -8,51 +8,6 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
-// func (todoArray *TodoArray) Insert(todoTitle, todoDescription string, tagID int) (todoPointer *TodoObject, err error) {
-
-// 	tagPointer := &TodoTagUnit{}
-// 	if todoTitle == "" || todoDescription == "" {
-// 		return nil, errors.New("All fields are not flush")
-// 	}
-
-// 	err = tagPointer.getTagUnit(tagID)
-// 	if err != nil {
-// 		return
-// 	}
-
-// 	return todoArray.insertViaObject(TodoObject{
-// 		Title:       todoTitle,
-// 		Description: todoDescription,
-// 		Tag:         tagPointer,
-// 	})
-// }
-
-// func (todoArray *TodoArray) insertViaObject(todoObject TodoObject) (todoPointer *TodoObject, err error) {
-// 	var todoStorage TodoStorage
-// 	_, todoObject.ID, _, err = todoStorage.getStorage()
-// 	if err != nil {
-// 		return
-// 	}
-
-// 	todoObject.TimeCreate = time.Now()
-// 	todoObject.TimeUpdate = todoObject.TimeCreate
-// 	*todoArray = append(*todoArray, todoObject)
-
-// 	err = todoArray.addToFile()
-// 	if err != nil {
-// 		return
-// 	}
-
-// 	err = todoStorage.writeStorage()
-// 	if err != nil {
-// 		return
-// 	}
-
-// 	todoPointer = &(*todoArray)[len(*todoArray)-1]
-
-// 	return
-// }
-
 func (todoArray *TodoArray) Filter(todoTitle, todoDescription string) (todoFilterArray *TodoArray) {
 	todoFilterArray = &TodoArray{}
 
