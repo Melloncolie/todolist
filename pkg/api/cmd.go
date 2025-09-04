@@ -28,6 +28,7 @@ func (api *Api) CMD() (err error) {
 
 	api.todoStorage = &todo.TodoStorage{}
 
+	api.todoStorage.Filename = *filename
 	err = api.New()
 	if err != nil {
 		return
@@ -39,7 +40,6 @@ func (api *Api) CMD() (err error) {
 	)
 
 	api.port = *port
-	api.todoStorage.Filename = *filename
 
 	if api.port != "" {
 		err = api.Init()

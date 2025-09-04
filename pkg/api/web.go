@@ -8,6 +8,8 @@ import (
 	"log"
 	"net/http"
 	"text/template"
+
+	"github.com/k0kubun/pp"
 )
 
 func (api *Api) Init() (err error) {
@@ -51,7 +53,7 @@ func (api *Api) Init() (err error) {
 			return
 		}
 		log.Println("Task added")
-		fmt.Printf("Task: %+v\n", todoPointer)
+		pp.Println(todoPointer)
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
 
@@ -66,7 +68,7 @@ func (api *Api) Init() (err error) {
 			return
 		}
 		log.Println("Task updated")
-		fmt.Printf("Task: %+v\n", todoPointer)
+		pp.Println(todoPointer)
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
 
@@ -81,7 +83,7 @@ func (api *Api) Init() (err error) {
 			return
 		}
 		log.Println("Task complited")
-		fmt.Printf("Task: %+v\n", todoPointer)
+		pp.Println(todoPointer)
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
 
@@ -89,14 +91,15 @@ func (api *Api) Init() (err error) {
 		record := r.URL.Query()
 		var ID int
 		fmt.Sscanf(record.Get("id"), "%d", &ID)
-		_, err := api.todoStorage.RemoveAndExport(ID)
+		todoPointer, err := api.todoStorage.RemoveAndExport(ID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			log.Println(err)
 			return
 		}
-		http.Redirect(w, r, "/", http.StatusSeeOther)
 		log.Println("Task removed")
+		pp.Println(todoPointer)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
 
 	http.HandleFunc("/get/", func(w http.ResponseWriter, r *http.Request) {
@@ -111,7 +114,7 @@ func (api *Api) Init() (err error) {
 		}
 		json.NewEncoder(w).Encode(todoPointer)
 		log.Print("Task received ")
-		fmt.Printf("Task: %+v\n", todoPointer)
+		pp.Println(todoPointer)
 	})
 
 	http.HandleFunc("/search/", func(w http.ResponseWriter, r *http.Request) {

@@ -5,20 +5,14 @@ import (
 	"time"
 )
 
-func (todoPointer *TodoObject) update(todoObject TodoObject) {
+func (todoPointer *TodoObject) update(title, description string) {
 	if todoPointer.Snapshot == nil {
 		todoPointer.Snapshot = &TodoArray{}
 	}
-	todoObject.Snapshot = todoPointer.Snapshot
-	todoPointer.Snapshot = nil
-	*todoObject.Snapshot = append(*todoObject.Snapshot, *todoPointer)
+	*todoPointer.Snapshot = append(*todoPointer.Snapshot, *todoPointer)
 
-	todoPointer.Title = todoObject.Title
-	todoPointer.Description = todoObject.Description
-
-	todoObject.TimeCreate = todoPointer.TimeCreate
-	todoObject.Tag = todoPointer.Tag
-	*todoPointer = todoObject
+	todoPointer.Title = title
+	todoPointer.Description = description
 	now := time.Now()
 	todoPointer.TimeUpdate.Time = &now
 }
