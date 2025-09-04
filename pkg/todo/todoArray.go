@@ -44,81 +44,6 @@ func (todoArray *TodoArray) getPointerID(todoID int) (todoPointer *TodoObject, e
 	return nil, errors.New("Pointer not found")
 }
 
-// func (todoArray *TodoArray) UpdateRecord(ID int, todoTitle, todoDescription string) (todoPointer *TodoObject, err error) {
-// 	if todoTitle == "" && todoDescription == "" {
-// 		return nil, errors.New("Fields are not flush")
-// 	}
-
-// 	todoPointer, err = todoArray.getPointerID(ID)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if todoTitle == "" {
-// 		todoTitle = todoPointer.Title
-// 	} else if todoDescription == "" {
-// 		todoDescription = todoPointer.Description
-// 	}
-// 	return todoArray.updateRecordViaObject(TodoObject{
-// 		ID:          ID,
-// 		Title:       todoTitle,
-// 		Description: todoDescription,
-// 	})
-// }
-
-// func (todoArray *TodoArray) updateRecordViaObject(todoObject TodoObject) (todoPointer *TodoObject, err error) {
-// 	todoPointer, err = todoArray.getPointerID(todoObject.ID)
-// 	if err != nil {
-// 		return
-// 	}
-
-// 	todoPointer.update(todoObject)
-
-// 	err = todoArray.addToArray(todoPointer)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	err = todoArray.addToFile()
-// 	return
-// }
-
-// func (todoArray *TodoArray) succecssRecordViaObject(todoObject TodoObject) (todoPointer *TodoObject, err error) {
-// 	todoPointer, err = todoArray.getPointerID(todoObject.ID)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	todoPointer.succecss()
-
-// 	err = todoArray.addToArray(todoPointer)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	err = todoArray.addToFile()
-// 	return
-// }
-
-// func (todoArray *TodoArray) Remove(ID int) (err error) {
-// 	todoPointer := &TodoObject{}
-// 	todoPointer, err = todoArray.getPointerID(ID)
-// 	if err != nil {
-// 		return
-// 	}
-// 	return todoArray.removeViaObject(*todoPointer)
-// }
-
-// func (todoArray *TodoArray) removeViaObject(todoObject TodoObject) (err error) {
-// 	for i, v := range *todoArray {
-// 		if v.ID == todoObject.ID {
-// 			*todoArray = append((*todoArray)[:i], (*todoArray)[i+1:]...)
-// 			err = todoArray.addToFile()
-// 			return
-// 		}
-// 	}
-// 	return errors.New("Not found Object 'removeViaObject 154'")
-// }
-
 func (todoArray *TodoArray) Search(ID int, todoTitle, todoDescription string) (todoSearchArray *TodoArray) {
 	todoSearchArray = &TodoArray{}
 	tr := false
@@ -162,14 +87,3 @@ func (todoArray *TodoArray) RenderTable() {
 	}
 	table.Render()
 }
-
-// func (todoArray *TodoArray) addToArray(todoPointer *TodoObject) (err error) {
-// 	for i, v := range *todoArray {
-// 		if v.ID == (*todoPointer).ID {
-// 			(*todoArray)[i] = *todoPointer
-// 			return
-// 		}
-// 	}
-
-// 	return errors.New("Not found in 'addToArray 224'")
-// }
