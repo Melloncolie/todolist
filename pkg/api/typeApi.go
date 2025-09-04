@@ -9,5 +9,6 @@ type ApiInterface interface {
 }
 
 type Api struct {
+	port        string
 	todoStorage *todo.TodoStorage
 }

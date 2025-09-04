@@ -6,11 +6,15 @@ type TodoObject struct {
 	ID          int          `json:"id"`
 	Title       string       `json:"title"`
 	Description string       `json:"description"`
-	TimeCreate  time.Time    `json:"timeCreate"`
-	TimeUpdate  time.Time    `json:"timeUpdate"`
+	TimeCreate  TodoTime     `json:"timeCreate"`
+	TimeUpdate  TodoTime     `json:"timeUpdate"`
 	Status      bool         `json:"status"`
 	Snapshot    *TodoArray   `json:"snapshot"`
 	Tag         *TodoTagUnit `json:"tag"`
+}
+
+type TodoTime struct {
+	*time.Time
 }
 
 type TodoTagUnit struct {

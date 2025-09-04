@@ -96,9 +96,10 @@ func (todoStorage *TodoStorage) AppendAndExport(todoTitle, todoDescription strin
 		ID:          todoStorage.NextID,
 		Title:       todoTitle,
 		Description: todoDescription,
-		TimeCreate:  time.Now(),
 		Tag:         tagPointer,
 	}
+	now := time.Now()
+	todoObject.TimeCreate.Time = &now
 	todoObject.TimeUpdate = todoObject.TimeCreate
 
 	*todoStorage.TodoArray = append(*todoStorage.TodoArray, todoObject)
@@ -140,8 +141,33 @@ func (todoStorage *TodoStorage) UpdateAndExport(ID int, todoTitle, todoDescripti
 	return todoPointer, err
 }
 
-// func (todoStorage *TodoStorage) SuccecssRecord(ID int) (todoPointer *TodoObject, err error) {
-// 	todoStorage.ComplTasks++
-// 	todoStorage.writeStorage()
-// 	return todoStorage.TodoArray.succecssRecordViaObject(TodoObject{ID: ID})
-// }
+func (todoStorage *TodoStorage) SuccecssRecordAndExport(ID int) (todoPointer *TodoObject, err error) {
+	todoPointer, err = todoStorage.getPointerID(ID)
+	if err != nil {
+		return nil, err
+	}
+	err = todoPointer.succecss()
+	if err != nil {
+		return
+	}
+	todoStorage.ComplTasks++
+	err = todoStorage.Export()
+	return
+}
+
+func (todoStorage *TodoStorage) RemoveAndExport(ID int) (todoPointer *TodoObject, err error) {
+	todoPointer, err = todoStorage.TodoArray.getPointerID(ID)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, todoObject := range *todoStorage.TodoArray {
+		if todoObject.ID == todoPointer.ID {
+			*todoStorage.TodoArray = append((*todoStorage.TodoArray)[:i], (*todoStorage.TodoArray)[i+1:]...)
+			todoStorage.Export()
+			return
+		}
+	}
+
+	return nil, errors.New("Not found")
+}

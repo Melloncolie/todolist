@@ -1,6 +1,7 @@
 package todo
 
 import (
+	"errors"
 	"time"
 )
 
@@ -18,10 +19,16 @@ func (todoPointer *TodoObject) update(todoObject TodoObject) {
 	todoObject.TimeCreate = todoPointer.TimeCreate
 	todoObject.Tag = todoPointer.Tag
 	*todoPointer = todoObject
-	todoPointer.TimeUpdate = time.Now()
+	now := time.Now()
+	todoPointer.TimeUpdate.Time = &now
 }
 
-func (todoPointer *TodoObject) succecss() {
+func (todoPointer *TodoObject) succecss() (err error) {
+	if todoPointer.Status {
+		return errors.New("Task has alredy been completed")
+	}
 	todoPointer.Status = true
-	todoPointer.TimeUpdate = time.Now()
+	now := time.Now()
+	todoPointer.TimeUpdate.Time = &now
+	return
 }
